@@ -58,5 +58,76 @@ router.get('/get-list-distributor', async (req, res) => {
         console.log(error)
     }
 })
+// Api tìm kiếm 
+router.get('/search-distributor', async (req, res) => {
+    try {
+        const key = req.query.key; // Nhan key tu url
+        //lấy danh sách theo thứ tự mới nhất
+        const data = await Distributors.find({name: { $regex: key, $options: "i" }}).sort({ createAt: -1 })
+        if (data) {
+            res.json({
+                "status": 200,
+                "messenger": "Thành công",
+                "data": data,
+            })
+        } else {
+            res.json({
+                "status": 400,
+                "messenger": "Không thành công",
+                "data": [],
+            })
+        }
+    
+    } catch (error) {   
+        console.log(error)
+    }
+})
+
+// Api xóa distributor
+router.delete('/delete-distributor-by-id/:id', async (req, res) => {
+    try {
+        const { id } = req.params
+        const result = await Distributors.findByIdAndDelete(id)
+        if (result) {
+            res.json({
+                "status": 200,
+                "messenger": "Xóa thành công",
+                "data": result,
+            })
+        } else {
+            res.json({
+                "status": 400,
+                "messenger": "Xóa không thành công",
+                "data": [],
+            })
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+// Api sửa distributor
+router.put('/update-distributor-by-id/:id', async (req, res) => {
+    try {
+        const { id } = req.params
+        const data = req.body
+        const result = await Distributors.findByIdAndUpdate(id, {name: data.name})
+        if (result) {
+            res.json({
+                "status": 200,
+                "messenger": "Sửa thành công",
+                "data": result,
+            })
+        } else {
+            res.json({
+                "status": 400,
+                "messenger": "Sửa không thành công",
+                "data": [],
+            })
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
 
 module.exports = router;

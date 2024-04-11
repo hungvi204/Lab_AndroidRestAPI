@@ -7,6 +7,7 @@ const Upload = require('../config/common/upload');
 const User = require('../models/users');
 const Transporter = require('../config/common/mail');
 const JWT = require('jsonwebtoken');
+const { handlebars } = require('hbs');
 const SECRETKEY = "FPTPOLYTECHNIC"
 //Api thêm fruit
 router.post('/add-fruit', async (req, res) => {
@@ -231,5 +232,45 @@ router.post('/add-fruit-with-file-image', Upload.array('image', 5), async (req, 
         console.log(error);
     }
 });
+router.get('/get-page-fruit', async (req, res) => {
+    //Auten
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    console.log("token: ", token);
+    if (token == null) return res.sendStatus(401);
+    let payload;
+    JWT.verify(token, SECRETKEY, (err, _payload) => {
+        if (err instanceof JWT.TokenExpiredError) return res.sendStatus(401);
+        if (err) return res.sendStatus(403);
+        payload = _payload;
+    });
+    let perPage = 6; // số lượng item trên 1 page
+    let page = req.query.page || 1; // page hiện tại
+    let skip = (perPage * page) - perPage; // phân trang
+    let count = await Fruit.find().count(); // tổng số item
+    //lọc theo tên
+    const name = { "$regex": req.query.name ?? "", "$options": "i" };
+    //lọc theo giá >= giá truyền vào
+    const price = { $gte: req.query.price ?? 0 };
+    //lọc sắp xếp theo giá
+    // const sort = { price: req.query.sort ?? 1 };
+    try {
+        const data = await Fruit.find({ name, price })
+            .populate('id_distributor')
+            .skip(skip)
+            .limit(perPage);
+        res.json({
+            "status": 200,
+            "messenger": "Danh sách fruit",
+            "data": {
+                "data": data,
+                "currentPage": Number(page),
+                "totalPage": Math.ceil(count / perPage)
+            },
+        });
+    } catch (error) {
+        console.log(error);
+    }
+})
 
 module.exports = router;

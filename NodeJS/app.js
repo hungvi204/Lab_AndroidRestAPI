@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var apiRouter = require('./routes/api')
 var fruitRouter = require('./routes/fruitRouter')
 var distributorsRouter = require('./routes/distributorsRouter')
+var orderRouter = require('./routes/order')
 
 
 const database = require('./config/db')
@@ -30,6 +31,7 @@ app.use('/', indexRouter);
 app.use('/api', apiRouter);
 app.use('/fruit', fruitRouter);
 app.use('/distributors', distributorsRouter);
+app.use('/order', orderRouter);
 
 //connect database
 database.connect();
